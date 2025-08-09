@@ -1,3 +1,6 @@
+// Author: StevenXoFk <https://github.com/StevenXoFk>
+// Project: https://github.com/StevenXoFk/Team-System
+
 import { CommandPermissionLevel, CustomCommandParamType, world, system } from "@minecraft/server";
 import { ModalFormData, MessageFormData } from '@minecraft/server-ui'
 import { getTeamSystem, isTeamSystemReady } from "./teamManager.js";

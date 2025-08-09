@@ -1,3 +1,6 @@
+// Author: StevenXoFk <https://github.com/StevenXoFk>
+// Project: https://github.com/StevenXoFk/Team-System
+
 import { world, system } from '@minecraft/server'
 
 export class Teams {
