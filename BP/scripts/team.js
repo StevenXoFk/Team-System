@@ -33,9 +33,9 @@ export class Teams {
                     this.playersTeam.set(playerId, teamName)
                 }
             }
-            console.warn(`§aTeam System: Cargados ${this.teams.size} equipos`);
+            console.warn(`§a[Team] Team System: Load ${this.teams.size} teams`);
         } catch (e) {
-            console.warn('§cError cargando datos del team system:', e);
+            console.warn('§c[Team] Error loading team system data:', e);
         }
     }
 
@@ -58,7 +58,7 @@ export class Teams {
             world.setDynamicProperty('team:players', JSON.stringify(playerTeamsArray));
             this.isDirty = false;
         } catch (e) {
-            console.error('Error guardando datos del team system:', e);
+            console.error('[Team] Error saving team system data:', e);
         }
     }
 
@@ -75,20 +75,20 @@ export class Teams {
 
         this.teams.clear()
         this.playersTeam.clear()
-        console.warn('§cTodos los datos del team system han sido limpiados');
+        console.warn('§c[Team] All team system data has been cleaned');
     }
 
     createTeam(teamName) {
         if (!teamName || teamName.trim().length === 0) {
-            return { retorna: false, msg: 'El nombre del equipo no puede estar vacío' }
+            return { retorna: false, msg: '[Team] The team name cannot be empty' }
         }
 
         if (teamName.length > 16) {
-            return { retorna: false, msg: 'El nombre del equipo es demasiado largo (máx 16 caracteres)' }
+            return { retorna: false, msg: '[Team] The teams name is too long (max 16 characters)' }
         }
 
         if (this.teams.has(teamName)) {
-            return { retorna: false, msg: 'El equipo ya existe' }
+            return { retorna: false, msg: '[Team] The team already exists' }
         }
 
         this.teams.set(teamName, {
@@ -99,12 +99,12 @@ export class Teams {
         });
 
         this.isDirty = true;
-        return { retorna: true, msg: `Equipo ${teamName} creado exitosamente` }
+        return { retorna: true, msg: `[Team] Team ${teamName} successfully created` }
     }
 
     deleteTeam(teamName) {
         if (!this.teams.has(teamName)) {
-            return { retorna: false, msg: "El equipo no existe" }
+            return { retorna: false, msg: "[Team] The team does not exist" }
         }
 
         const team = this.teams.get(teamName)
@@ -120,17 +120,17 @@ export class Teams {
         this.teams.delete(teamName)
 
         this.saveTeams();
-        return { retorna: true, msg: `Equipo ${teamName} eliminado` }
+        return { retorna: true, msg: `[Team] Team ${teamName} deleted` }
     }
 
     joinTeam(player, teamName) {
         if (!this.teams.has(teamName)) {
-            return { retorna: false, msg: "El equipo no existe" };
+            return { retorna: false, msg: "[Team] The team does not exist" };
         }
 
         const currentTeam = this.playersTeam.get(player.id);
         if (currentTeam) {
-            return { retorna: false, msg: `Ya estás en el equipo ${currentTeam}` };
+            return { retorna: false, msg: `[Team] You're already on the ${currentTeam} team` };
         }
 
         const team = this.teams.get(teamName)
@@ -144,15 +144,15 @@ export class Teams {
         this.updatePlayerDisplay(player);
         this.isDirty = true;
 
-        return { retorna: true, msg: `Te uniste al equipo ${teamName}` };
+        return { retorna: true, msg: `[Team] You joined team ${teamName}` };
     }
 
     leaveTeam(player) {
         const actualTeam = this.playersTeam.get(player.id);
-        if (!actualTeam) return { retorna: false, msg: "No estás en un equipo" };
+        if (!actualTeam) return { retorna: false, msg: "[Team] You are not on any team" };
 
         const team = this.teams.get(actualTeam);
-        if (!team) return { retorna: false, msg: "El equipo no existe" };
+        if (!team) return { retorna: false, msg: "[Team] The team does not exist" };
 
         team.members.delete(player.id);
         this.playersTeam.delete(player.id);
@@ -169,7 +169,7 @@ export class Teams {
         }
 
         this.saveTeams();
-        return { retorna: true, msg: `Saliste del equipo ${actualTeam}` };
+        return { retorna: true, msg: `[Team] You left the team ${actualTeam}` };
     }
 
     getPlayerTeam(player) {
@@ -193,8 +193,8 @@ export class Teams {
 
     kickFromTeam(playerId, teamName) {
         const team = this.teams.get(teamName);
-        if (!team) return { retorna: false, msg: "El equipo no existe" };
-        if (!team.members.has(playerId)) return { retorna: false, msg: "El jugador no está en el equipo" };
+        if (!team) return { retorna: false, msg: "[Team] The team does not exist" };
+        if (!team.members.has(playerId)) return { retorna: false, msg: "The player is not on the team" };
 
         team.members.delete(playerId);
         this.playersTeam.delete(playerId);
@@ -210,7 +210,7 @@ export class Teams {
         }
 
         this.saveTeams();
-        return { retorna: true, msg: `Jugador expulsado del equipo ${teamName}` };
+        return { retorna: true, msg: `Player expelled from the ${teamName} team` };
     }
 
     updatePlayerDisplay(player) {
@@ -242,6 +242,6 @@ export class Teams {
     }
 
     onLeavePlayer(player) {
-        this.saveTeams()
+        this.updatePlayerDisplay(player)
     }
 }

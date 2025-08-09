@@ -1,7 +1,7 @@
 import { world } from '@minecraft/server';
 import { Teams } from './team.js';
 
-// Variable privada para almacenar la instancia
+// Private variable to store the instance
 let _teamSystem = null;
 
 // Función para obtener la instancia del team system
@@ -9,7 +9,7 @@ export function getTeamSystem() {
     return _teamSystem;
 }
 
-// Función para verificar si está inicializado
+// Function to obtain the team system instance
 export function isTeamSystemReady() {
     return _teamSystem !== null;
 }
@@ -18,13 +18,14 @@ export function isTeamSystemReady() {
 export function initializeTeamSystem() {
     if (!_teamSystem) {
         _teamSystem = new Teams();
-        console.warn("§aTeam System inicializado correctamente");
+        console.warn("§aTeam System initialized correctly");
     }
     return _teamSystem;
 }
 
 
-// Inicializar cuando el mundo se cargue
+// Initialize when the world loads
 world.afterEvents.worldLoad.subscribe(() => {
+    console.warn(`§aTeam System Version §e1.0`)
     initializeTeamSystem();
 });

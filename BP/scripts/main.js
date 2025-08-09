@@ -5,6 +5,23 @@ import { getTeamSystem, isTeamSystemReady } from "./teamManager.js";
 const invitation = new Map()
 const TIME_INVITE = 30 * 1000
 
+system.runInterval(() => {
+    for (const player of world.getAllPlayers()) {
+        const teamSystem = getTeamSystem();
+
+        const team = teamSystem?.getPlayerTeam(player);
+        player.nameTag = `${team ? `§7[§r${team.name}§r§7]§r ` : ''}${player.name}`;
+    }
+})
+
+world.beforeEvents.chatSend.subscribe((data) => {
+    const player = data.sender;
+    data.cancel = true;
+    const teamSystem = getTeamSystem();
+    const team = teamSystem?.getPlayerTeam(player);
+    world.sendMessage(`${team ? `§7[§r${team.name}§r§7]§r ` : ''}§7${player.name} §r: ${data.message}`);
+})
+
 world.beforeEvents.playerLeave.subscribe((data) => {
     const teamSystem = getTeamSystem()
     const player = data.player;
@@ -12,6 +29,10 @@ world.beforeEvents.playerLeave.subscribe((data) => {
     teamSystem.updatePlayerDisplay(player)
 })
 
+world.afterEvents.playerJoin.subscribe((data) => {
+    const playerName = data.playerName
+    findPlayerWithAttps(playerName);
+})
 
 system.beforeEvents.startup.subscribe((data) => {
     const cmdReg = data.customCommandRegistry;
@@ -20,7 +41,7 @@ system.beforeEvents.startup.subscribe((data) => {
 
     const teamCmd = {
         name: 'x:team',
-        description: "equipos",
+        description: "Command to create, join, among other things for a team",
         permissionLevel: CommandPermissionLevel.Any,
         mandatoryParameters: [
             {
@@ -36,7 +57,7 @@ system.beforeEvents.startup.subscribe((data) => {
 
         const teamSystem = getTeamSystem()
         if (!teamSystem) {
-            player.sendMessage("§cTeam System no está inicializado");
+            player.sendMessage("§cTeam System is not initialized");
             return;
         }
 
@@ -47,18 +68,18 @@ system.beforeEvents.startup.subscribe((data) => {
                     break;
                 }
 
-                player.sendMessage(`§cNo puedes crear un equipo debido a que ya estas en uno`)
+                player.sendMessage(`§cYou can't create a team because you're already on one`)
                 break;
 
             case enumsTeams[1]: //accept
                 const invite = invitation.get(player.name)
                 if (!invite) {
-                    player.sendMessage(`§cNo puedes usar esto debido a que ya estas en uno, o no tienes ninguna invitacion lol`)
+                    player.sendMessage(`§cYou can't use this because you're already on a team, or you don't have any invitations to join a team`)
                     break;
                 }
 
                 if (Date.now() - invite.time >= (TIME_INVITE)) {
-                    player.sendMessage(`§cNo aceptarlo debido a que la invitacion expiró`);
+                    player.sendMessage(`§cDo not accept it because the invitation has expired`);
                     invitation.delete(player.name)
                     break;
                 }
@@ -69,7 +90,7 @@ system.beforeEvents.startup.subscribe((data) => {
 
             case enumsTeams[2]: //kick
                 if (teamSystem.getPlayerTeam(player) === null || (teamSystem.getPlayerTeam(player).leader !== player.id)) {
-                    player.sendMessage(`§cNo puedes usar esto`)
+                    player.sendMessage(`§cYou can't use this`)
                     break;
                 }
                 kickPlayerForm(player)
@@ -77,7 +98,7 @@ system.beforeEvents.startup.subscribe((data) => {
 
             case enumsTeams[3]: //invite
                 if (teamSystem.getPlayerTeam(player) === null || (teamSystem.getPlayerTeam(player).leader !== player.id)) {
-                    player.sendMessage(`§cNo puedes usar esto`)
+                    player.sendMessage(`§cYou can't use this`)
                     break;
                 }
                 invitePlayersForm(player)
@@ -85,7 +106,7 @@ system.beforeEvents.startup.subscribe((data) => {
 
             case enumsTeams[4]: //leave
                 if (teamSystem.getPlayerTeam(player) === null) {
-                    player.sendMessage(`§cNo puedes usar esto debido a que no estas en un equipo`)
+                    player.sendMessage(`§cYou can't use this because you're not on a team`)
                     break;
                 }
                 let leave = teamSystem.leaveTeam(player);
@@ -94,23 +115,23 @@ system.beforeEvents.startup.subscribe((data) => {
 
             case enumsTeams[5]: //clear
                 if (!player.hasTag('admin')) {
-                    player.sendMessage(`§cNo puedes usar esto`)
+                    player.sendMessage(`§cYou can't use this`)
                     break;
                 }
                 teamSystem.clearAll()
                 break;
             default:
-                player.sendMessage('§cTienes que usar los argumentos /team | create | accept | leave | invite | kick |')
+                player.sendMessage('§cYou have to use the arguments /team | create | accept | leave | invite | kick |')
                 break;
         }
     })
 })
 
 function createTeamForm(player) {
-    const form = new ModalFormData().title('Crear Equipo')
+    const form = new ModalFormData().title('Create Team')
     const teamSystem = getTeamSystem();
 
-    form.textField('Nombre del Equipo', 'Ingresa el nombre...');
+    form.textField('Team name', 'Enter the team name...');
     system.run(() => {
         form.show(player).then(r => {
             if (r.canceled) return;
@@ -133,12 +154,12 @@ function invitePlayersForm(player) {
         }
     }
     if (players.length === 0) {
-        player.sendMessage(`§cNo hay jugadores para invitar`)
+        player.sendMessage(`§cThere are no players to invite`)
         return;
     }
 
-    const form = new ModalFormData().title('Invitar Jugador');
-    form.dropdown('Jugador', players);
+    const form = new ModalFormData().title('Invite Player');
+    form.dropdown('Players', players);
 
     system.run(() => {
         form.show(player).then(r => {
@@ -149,8 +170,8 @@ function invitePlayersForm(player) {
                 team: teamSystem.getPlayerTeam(player).name,
                 time: Date.now()
             })
-            player.sendMessage(`§aInvitastes a§e ${inv}§a al equipo`)
-            playerInv.sendMessage(`§aEl jugador §e${player.name}§a te invitó al equipo§e ${teamSystem.getPlayerTeam(player).name}§a, tienes §e30 segundos§a para aceptar usa§e /team accept`)
+            player.sendMessage(`§aYou invited §e ${inv}§a to the team`)
+            playerInv.sendMessage(`§aThe player §e${player.name}§a invited you to the§e ${teamSystem.getPlayerTeam(player).name}§a team, you have §e30 seconds§a to accept use§e /team accept`)
         })
     })
 }
@@ -163,7 +184,7 @@ function kickPlayerForm(player) {
         .filter(id => id !== player.id);
 
     if (miembrosIds.length === 0) {
-        player.sendMessage("§cNo hay miembros para expulsar.");
+        player.sendMessage("§cThere are no members to kick.");
         return;
     }
 
@@ -173,8 +194,8 @@ function kickPlayerForm(player) {
     });
 
     const form = new ModalFormData()
-        .title('Expulsar Jugador')
-        .dropdown('Selecciona un jugador', miembrosNombres);
+        .title('Kick Player')
+        .dropdown('Select a player', miembrosNombres);
 
     system.run(() => {
         form.show(player).then(r => {
@@ -185,4 +206,27 @@ function kickPlayerForm(player) {
             player.sendMessage(resultado.retorna ? `§a${resultado.msg}` : `§c${resultado.msg}`);
         });
     });
+}
+
+function findPlayerWithAttps(name, attps = 0, maxAttps = 100) {
+    const player = world.getAllPlayers().find(p => p.name === name);
+
+    if (player) {
+        //Mensaje de informacion
+        console.warn(`Player ${player.name} found in attempt ${attps + 1}`);
+
+        const teamSystem = getTeamSystem();
+        if (teamSystem) {
+            teamSystem.onJoinPlayer(player);
+        }
+        return;
+    }
+    // Si no se encontró y aún quedan intentos
+    if (attps < maxAttps) {
+        system.runTimeout(() => {
+            findPlayerWithAttps(name, attps + 1, maxAttps);
+        }, 5); // Esperar 2 ticks entre intentos
+    } else {
+        console.warn(`§cThe player §7${name}§c could not be found after §7${maxAttps}§c attempts`);
+    }
 }
