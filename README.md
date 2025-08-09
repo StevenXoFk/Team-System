@@ -35,3 +35,9 @@ Además, para poder usarlo en cualquier ruta de script, se recomienda importar i
 - `/team invite`: This option allows you to invite a player who is not on any team, this player will then have to accept to join the team // Esta opción te permite invitar a un jugador que no está en ningún equipo, este jugador tendrá que aceptar unirse al equipo
 
 - `/team clear`: This option is important for administrators to clean all existing teams. To use it you have to use the 'admin' tag // Esta opción es importante para que los administradores limpien todos los equipos existentes. Para usarlo tienes que usar la etiqueta 'admin'
+
+# Note
+
+Any bugs or improvements you want to implement, tell me by discord @steven.lmao
+
+Cualquier bug o mejora que quieras implementar, dimelo por discord @steven.lmao
