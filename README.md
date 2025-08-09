@@ -1,28 +1,28 @@
 # Team-System
 
-## Description / Descripción
+# Description / Descripción
 
-# ENGLISH
+## ENGLISH
 This addon for Minecraft Bedrock 1.21.100 adds an advanced team system to the game. It allows you to create, manage and administer teams of players using scripts, making it easier for add-on developers to instantiate teams to their games.
 
-# SPANISH
+## SPANISH
 
 Este complemento para Minecraft Bedrock 1.21.100 agrega un sistema de equipo avanzado al juego. Le permite crear, administrar y administrar equipos de jugadores mediante scripts, lo que facilita que los desarrolladores de complementos creen instancias de equipos en sus juegos.
 
-## How it works / Como funciona
+# How it works / Como funciona
 
-# ENGLISH
+## ENGLISH
 This addon works through a class called Teams which will be storing all the equipment information in maps, and then converts them into a string to store it in the DynamicProperty of the world. This addon will be automatically saving every 600 ticks (30 seconds).
 
 Additionally, in order to use it in any script path, it is recommended to import the import { getTeamSystem} from "./teamManager.js"; to access your data.
 
-# SPANISH
+## SPANISH
 
 Este complemento funciona a través de una clase llamada Teams que almacenará toda la información del equipo en mapas y luego los convertirá en una cadena para almacenarla en DynamicProperty del mundo. Este complemento se guardará automáticamente cada 600 ticks (30 segundos).
 
 Además, para poder usarlo en cualquier ruta de script, se recomienda importar import { getTeamSystem} desde "./teamManager.js"; para acceder a sus datos.
 
-## Commands:
+# Commands:
 
 - `/team create`: option to create a team (The team name must be a minimum of 1 character and a maximum of 12) // Opción para crear un equipo (El nombre del equipo debe ser un mínimo de 1 carácter y un máximo de 12)
 
