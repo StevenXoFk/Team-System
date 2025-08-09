@@ -4,17 +4,17 @@ import { Teams } from './team.js';
 // Private variable to store the instance
 let _teamSystem = null;
 
-// Función para obtener la instancia del team system
+// Function to obtain the team system instance
 export function getTeamSystem() {
     return _teamSystem;
 }
 
-// Function to obtain the team system instance
+// Function to check if the teamSystem is ready
 export function isTeamSystemReady() {
     return _teamSystem !== null;
 }
 
-// Función para inicializar el team system
+// Function to initialize the team system
 export function initializeTeamSystem() {
     if (!_teamSystem) {
         _teamSystem = new Teams();
