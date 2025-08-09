@@ -212,7 +212,6 @@ function findPlayerWithAttps(name, attps = 0, maxAttps = 100) {
     const player = world.getAllPlayers().find(p => p.name === name);
 
     if (player) {
-        //Mensaje de informacion
         console.warn(`Player ${player.name} found in attempt ${attps + 1}`);
 
         const teamSystem = getTeamSystem();
@@ -221,11 +220,10 @@ function findPlayerWithAttps(name, attps = 0, maxAttps = 100) {
         }
         return;
     }
-    // Si no se encontró y aún quedan intentos
     if (attps < maxAttps) {
         system.runTimeout(() => {
             findPlayerWithAttps(name, attps + 1, maxAttps);
-        }, 5); // Esperar 2 ticks entre intentos
+        }, 5);
     } else {
         console.warn(`§cThe player §7${name}§c could not be found after §7${maxAttps}§c attempts`);
     }
