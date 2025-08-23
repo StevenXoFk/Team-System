@@ -1,21 +1,10 @@
-// Author: StevenXoFk <https://github.com/StevenXoFk>
-// Project: https://github.com/StevenXoFk/Team-System
-
 import { CommandPermissionLevel, CustomCommandParamType, world, system } from "@minecraft/server";
 import { ModalFormData, MessageFormData } from '@minecraft/server-ui'
 import { getTeamSystem, isTeamSystemReady } from "./teamManager.js";
+import { SlashCommandManager } from './command.js';
 
 const invitation = new Map()
 const TIME_INVITE = 30 * 1000
-
-system.runInterval(() => {
-    for (const player of world.getAllPlayers()) {
-        const teamSystem = getTeamSystem();
-
-        const team = teamSystem?.getPlayerTeam(player);
-        player.nameTag = `${team ? `§7[§r${team.name}§r§7]§r ` : ''}${player.name}`;
-    }
-})
 
 world.beforeEvents.chatSend.subscribe((data) => {
     const player = data.sender;
@@ -25,6 +14,7 @@ world.beforeEvents.chatSend.subscribe((data) => {
     world.sendMessage(`${team ? `§7[§r${team.name}§r§7]§r ` : ''}§7${player.name} §r: ${data.message}`);
 })
 
+// Player Leave
 world.beforeEvents.playerLeave.subscribe((data) => {
     const teamSystem = getTeamSystem()
     const player = data.player;
@@ -32,103 +22,94 @@ world.beforeEvents.playerLeave.subscribe((data) => {
     teamSystem.updatePlayerDisplay(player)
 })
 
+// Player Join
 world.afterEvents.playerJoin.subscribe((data) => {
     const playerName = data.playerName
     findPlayerWithAttps(playerName);
 })
 
-system.beforeEvents.startup.subscribe((data) => {
-    const cmdReg = data.customCommandRegistry;
-    const enumsTeams = ["create", "accept", 'kick', "invite", "leave", 'clear']
-    cmdReg.registerEnum('x:enumTeams', enumsTeams)
+system.beforeEvents.shutdown.subscribe((data) => {
+    const teamSystem = getTeamSystem();
+    teamSystem.saveTeams();
+})
 
-    const teamCmd = {
-        name: 'x:team',
-        description: "Command to create, join, among other things for a team",
-        permissionLevel: CommandPermissionLevel.Any,
-        mandatoryParameters: [
-            {
-                type: CustomCommandParamType.Enum,
-                name: "x:enumTeams",
-            }
-        ]
-    }
+const enumsTeams = ["create", "accept", 'kick', "invite", "leave", 'clear'];
 
-    data.customCommandRegistry.registerCommand(teamCmd, (sender, args) => {
-        const player = sender.sourceEntity,
-            enums = args
+SlashCommandManager.create('x:team')
+    .description("Command to create, join, among other things for a team")
+    .enum('x:action', enumsTeams, true)
+    .onExecute((sender, args) => {
+        const player = sender.sourceEntity;
+        const action = args;
 
-        const teamSystem = getTeamSystem()
+        const teamSystem = getTeamSystem();
         if (!teamSystem) {
             player.sendMessage("§cTeam System is not initialized");
             return;
         }
 
-        switch (enums) {
+        switch (action) {
             case enumsTeams[0]: //Create
                 if (teamSystem.getPlayerTeam(player) === null) {
-                    createTeamForm(player)
+                    createTeamForm(player);
                     break;
                 }
-
-                player.sendMessage(`§cYou can't create a team because you're already on one`)
+                player.sendMessage(`§cYou can't create a team because you're already on one`);
                 break;
 
             case enumsTeams[1]: //accept
-                const invite = invitation.get(player.name)
+                const invite = invitation.get(player.name);
                 if (!invite) {
-                    player.sendMessage(`§cYou can't use this because you're already on a team, or you don't have any invitations to join a team`)
+                    player.sendMessage(`§cYou can't use this because you're already on a team, or you don't have any invitations to join a team`);
                     break;
                 }
-
                 if (Date.now() - invite.time >= (TIME_INVITE)) {
                     player.sendMessage(`§cDo not accept it because the invitation has expired`);
-                    invitation.delete(player.name)
+                    invitation.delete(player.name);
                     break;
                 }
-
                 const joinTeam = teamSystem.joinTeam(player, invite.team);
-                player.sendMessage(joinTeam.retorna ? `§a${joinTeam.msg}` : `§c${joinTeam.msg}`)
-                break
+                player.sendMessage(joinTeam.retorna ? `§a${joinTeam.msg}` : `§c${joinTeam.msg}`);
+                break;
 
             case enumsTeams[2]: //kick
                 if (teamSystem.getPlayerTeam(player) === null || (teamSystem.getPlayerTeam(player).leader !== player.id)) {
-                    player.sendMessage(`§cYou can't use this`)
+                    player.sendMessage(`§cYou can't use this`);
                     break;
                 }
-                kickPlayerForm(player)
+                kickPlayerForm(player);
                 break;
 
             case enumsTeams[3]: //invite
                 if (teamSystem.getPlayerTeam(player) === null || (teamSystem.getPlayerTeam(player).leader !== player.id)) {
-                    player.sendMessage(`§cYou can't use this`)
+                    player.sendMessage(`§cYou can't use this`);
                     break;
                 }
-                invitePlayersForm(player)
+                invitePlayersForm(player);
                 break;
 
             case enumsTeams[4]: //leave
                 if (teamSystem.getPlayerTeam(player) === null) {
-                    player.sendMessage(`§cYou can't use this because you're not on a team`)
+                    player.sendMessage(`§cYou can't use this because you're not on a team`);
                     break;
                 }
                 let leave = teamSystem.leaveTeam(player);
-                player.sendMessage(leave.retorna ? `§a${leave.msg}` : `§c${leave.msg}`)
+                player.sendMessage(leave.retorna ? `§a${leave.msg}` : `§c${leave.msg}`);
                 break;
 
             case enumsTeams[5]: //clear
                 if (!player.hasTag('admin')) {
-                    player.sendMessage(`§cYou can't use this`)
+                    player.sendMessage(`§cYou can't use this`);
                     break;
                 }
-                teamSystem.clearAll()
+                teamSystem.clearAll();
                 break;
+
             default:
-                player.sendMessage('§cYou have to use the arguments /team | create | accept | leave | invite | kick |')
+                player.sendMessage('§cYou have to use the arguments /team | create | accept | leave | invite | kick |');
                 break;
         }
-    })
-})
+    });
 
 function createTeamForm(player) {
     const form = new ModalFormData().title('Create Team')
@@ -223,6 +204,7 @@ function findPlayerWithAttps(name, attps = 0, maxAttps = 100) {
         }
         return;
     }
+
     if (attps < maxAttps) {
         system.runTimeout(() => {
             findPlayerWithAttps(name, attps + 1, maxAttps);

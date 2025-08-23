@@ -1,23 +1,20 @@
-// Author: StevenXoFk <https://github.com/StevenXoFk>
-// Project: https://github.com/StevenXoFk/Team-System
-
 import { world } from '@minecraft/server';
 import { Teams } from './team.js';
 
 // Private variable to store the instance
 let _teamSystem = null;
 
-// Function to obtain the team system instance
+// Función para obtener la instancia del team system
 export function getTeamSystem() {
     return _teamSystem;
 }
 
-// Function to check if the teamSystem is ready
+// Function to obtain the team system instance
 export function isTeamSystemReady() {
     return _teamSystem !== null;
 }
 
-// Function to initialize the team system
+// Función para inicializar el team system
 export function initializeTeamSystem() {
     if (!_teamSystem) {
         _teamSystem = new Teams();

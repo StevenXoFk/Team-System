@@ -1,6 +1,3 @@
-// Author: StevenXoFk <https://github.com/StevenXoFk>
-// Project: https://github.com/StevenXoFk/Team-System
-
 import { world, system } from '@minecraft/server'
 
 export class Teams {
@@ -10,7 +7,6 @@ export class Teams {
         this.isDirty = false;
 
         this.loadTeams();
-        this.startAutoSave();
     }
 
     loadTeams() {
@@ -63,13 +59,6 @@ export class Teams {
         } catch (e) {
             console.error('[Team] Error saving team system data:', e);
         }
-    }
-
-    startAutoSave() {
-        system.runInterval(() => {
-            this.saveTeams();
-            console.warn('teams save')
-        }, 600)
     }
 
     clearAll() {
@@ -231,6 +220,8 @@ export class Teams {
                 const sanitizedName = team.name.replace(/[^a-zA-Z0-9_]/g, '_');
                 player.addTag(`team_${sanitizedName}`);
             }
+
+            player.nameTag = `${team ? `§7[§r${team.name}§r§7]§r ` : ''}${player.name}`;
         })
     }
 
